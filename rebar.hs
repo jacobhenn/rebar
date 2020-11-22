@@ -42,7 +42,7 @@ getTags = runShellCommand "format_tag_status"
 getCharge :: IO String
 getCharge = runShellCommand "acpi -i\
                           \| head -n 1\
-                          \| grep -P -o '(?<=, )\\d*'\
+                          \| grep -P -o '(?<=, )\\d*(?=%)'\
                           \| gdbar -fg '#ebcb8b' -bg '#434c5e'"
 
 --------------------------------------------------------------------------------
