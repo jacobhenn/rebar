@@ -84,10 +84,10 @@ updateBar bar delta = update (ind delta) (new delta) bar
 --------------------------------------------------------------------------------
 printBar :: Seq String -> IO ()
 printBar b = do
-    putStrLn $ " ^fg(#d08770)" ++ b!0
-            ++ " ^fg(#88c0d0)" ++ b!1
+    putStrLn $ " ^fg(#d08770)"   ++ b!0
+            ++ "   ^fg(#88c0d0)" ++ b!1
             ++ " ^pa(1800)"
-            ++ " ^fg(#ebcb8b)" ++ b!2
+            ++ " ^fg(#ebcb8b)"   ++ b!2
     hFlush stdout
 
 --------------------------------------------------------------------------------
