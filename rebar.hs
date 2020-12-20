@@ -31,7 +31,7 @@ runShellCommand cmd = (\x
 
 --------------------------------------------------------------------------------
 getDate :: IO String
-getDate = formatTime defaultTimeLocale "%A (%B) %Y-%m-%d %H:%M:%S %Z"
+getDate = formatTime defaultTimeLocale "%A (%B) %Y-%m-%d %H:%M:%S %Z (UTC%z)"
             <$> getZonedTime
 
 --------------------------------------------------------------------------------
