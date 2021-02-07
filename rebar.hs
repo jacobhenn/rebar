@@ -22,12 +22,9 @@ threadDelaySecs :: Int -> IO ()
 threadDelaySecs i = threadDelay $ i * 10 ^ 6
 
 --------------------------------------------------------------------------------
--- get the stdout of an sh command and strip any ending newlines
+-- get the stdout of a command and strip newlines
 runShellCommand :: String -> IO String
-runShellCommand cmd = (\x
-  -> if | last x == '\n' -> init x
-        | otherwise      -> x)
-          <$> readProcess "sh" ["-c", cmd] ""
+runShellCommand cmd = unwords . lines <$> readProcess "sh" ["-c", cmd] ""
 
 --------------------------------------------------------------------------------
 getDate :: IO String
@@ -41,9 +38,9 @@ getTags = runShellCommand "format_tag_status"
 --------------------------------------------------------------------------------
 getCharge :: IO String
 getCharge = runShellCommand "acpi -i\
-                          \| head -n 1\
-                          \| grep -P -o '(?<=, )\\d*(?=%)'\
-                          \| gdbar -fg '#ebcb8b' -bg '#434c5e'"
+                          \ | head -n 1\
+                          \ | grep -P -o '(?<=, )\\d*(?=%)'\
+                          \ | gdbar -fg '#ebcb8b' -bg '#434c5e'"
 
 --------------------------------------------------------------------------------
 -- wakes up every second to get the date
@@ -84,10 +81,9 @@ updateBar bar delta = update (ind delta) (new delta) bar
 --------------------------------------------------------------------------------
 printBar :: Seq String -> IO ()
 printBar b = do
-    putStrLn $ " ^fg(#d08770)"   ++ b!0
-            ++ "   ^fg(#88c0d0)" ++ b!1
-            ++ " ^pa(1800)"
-            ++ " ^fg(#ebcb8b)"   ++ b!2
+    putStrLn $ " ^bg(#d08770) " ++ b!0
+            ++ " ^fg(#88c0d0)^bg(#2e3440)   " ++ b!1
+            ++ "^pa(1800)"      ++ b!2
     hFlush stdout
 
 --------------------------------------------------------------------------------
