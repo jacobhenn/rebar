@@ -15,4 +15,8 @@ impl Time {
     pub fn new() -> Self {
         Self(Local::now())
     }
+
+    pub fn update(&mut self) {
+        self.0 = Local::now();
+    }
 }

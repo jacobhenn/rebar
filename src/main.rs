@@ -14,8 +14,6 @@ use std::error::Error;
 use tokio::time::timeout;
 use std::fmt;
 
-const ONE_SECOND: Duration = Duration::from_secs(1);
-
 struct Bar {
     time: Time,
     workspaces: Workspaces,
@@ -28,26 +26,9 @@ impl fmt::Display for Bar {
     }
 }
 
-async fn hc_tag_status() -> Result<Workspaces, Box<dyn Error>> {
-    let buf = Command::new("herbstclient")
-        .arg("tag_status")
-        .output()
-        .await?
-        .stdout;
-
-    Ok(String::from_utf8(buf)?.parse()?)
-
-}
-
 impl Bar {
-    async fn update_workspaces(&mut self) -> Result<(), Box<dyn Error>> {
-        self.workspaces = hc_tag_status().await?;
-        self.pass_second().await?;
-        Ok(())
-    }
-
-    async fn pass_second(&mut self) -> Result<(), Box<dyn Error>> {
-        self.time.0 = self.time.0 + chrono::Duration::from_std(ONE_SECOND)?;
+    async fn update_time(&mut self) -> Result<(), Box<dyn Error>> {
+        self.time.update();
         if self.time.0.second() == 0 {
             self.battery.update_charge().await?;
         }
@@ -57,7 +38,7 @@ impl Bar {
     async fn new() -> Result<Self, Box<dyn Error>> {
         Ok(Self {
             time: Time::new(),
-            workspaces: hc_tag_status().await?,
+            workspaces: Workspaces::new().await?,
             battery: Battery::new().await?,
         })
     }
@@ -92,9 +73,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         dz_stdin_writer.write_u8(b'\n').await?;
         dz_stdin_writer.flush().await?;
         if timeout(Duration::from_secs(1), hc_stdout_reader.next_line()).await.is_ok() {
-            bar.update_workspaces().await?;
-        } else {
-            bar.pass_second().await?;
+            bar.workspaces.update().await?;
         }
+        bar.update_time().await?;
     }
 }

@@ -1,4 +1,6 @@
-use std::{fmt, str, error};
+use std::{fmt, str};
+use std::error::Error;
+use tokio::process::Command;
 
 pub enum Workspace {
     Empty,
@@ -31,8 +33,8 @@ impl fmt::Display for ParseWorkspaceError {
     }
 }
 
-impl error::Error for ParseWorkspaceError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> { None }
+impl Error for ParseWorkspaceError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> { None }
 }
 
 impl str::FromStr for Workspace {
@@ -57,7 +59,12 @@ pub struct Workspaces(Vec<Workspace>);
 impl fmt::Display for Workspaces {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let Self(workspaces) = self;
-        write!(f, "{}", workspaces.iter().map(|w| w.to_string()).collect::<Vec<_>>().join(" "))
+        let s = workspaces
+            .iter()
+            .map(|w| w.to_string())
+            .filter(|w| w.len() != 0)
+            .collect::<Vec<_>>().join(" ");
+        write!(f, "{}", s)
     }
 }
 
@@ -70,5 +77,27 @@ impl str::FromStr for Workspaces {
             .map(|w| w.parse())
             .collect::<Result<Vec<Workspace>, ParseWorkspaceError>>()?;
         Ok(Self(workspaces))
+    }
+}
+
+async fn hc_tag_status() -> Result<Workspaces, Box<dyn Error>> {
+    let buf = Command::new("herbstclient")
+        .arg("tag_status")
+        .output()
+        .await?
+        .stdout;
+
+    Ok(String::from_utf8(buf)?.parse()?)
+
+}
+
+impl Workspaces {
+    pub async fn new() -> Result<Self, Box<dyn Error>> {
+        Ok(hc_tag_status().await?)
+    }
+
+    pub async fn update(&mut self) -> Result<(), Box<dyn Error>> {
+        *self = hc_tag_status().await?;
+        Ok(())
     }
 }
