@@ -1,4 +1,1 @@
-*.hi
-*.o
-rebar
-make.sh
+/target
